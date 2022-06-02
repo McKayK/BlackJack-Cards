@@ -98,7 +98,8 @@ function App() {
         // }, 0);
         setPlayerSum(
           playerArr.reduce((acc, curr) => {
-            return (acc += +curr.value);
+            console.log("acc", acc, "curr", curr);
+            return (acc += getValue(curr));
           }, 0)
         );
         // playerSum += getValue(temp);
