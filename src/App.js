@@ -12,7 +12,7 @@ function App() {
   const [canHit, setCanHit] = useState(true);
 
   let dealerSum = 0;
-  // let playerSum = 0;
+  let playerSum2 = 0;
 
   let dealerAceCount = 0;
   let playerAceCount = 0;
@@ -59,8 +59,8 @@ function App() {
   playableDeck.shuffle();
   // console.log(playableDeck);
 
-  let ready = false;
-  let tempSum = 0;
+  // let ready = false;
+  // let tempSum = 0;
 
   useEffect(() => {
     const startGame = () => {
@@ -92,28 +92,31 @@ function App() {
         // console.log(temp);
         playerArr.push(temp);
         // setPlayerSum(playerSum + getValue(temp));
+        playerSum2 += getValue(temp);
         // tempSum = playerArr.reduce((acc, curr) => {
         //   return acc + +curr.value;
         // }, 0);
         setPlayerSum(
           playerArr.reduce((acc, curr) => {
-            return acc + +curr.value;
+            return (acc += +curr.value);
           }, 0)
         );
         // playerSum += getValue(temp);
         console.log(playerSum);
         playerAceCount += checkAce(temp);
+        // setPlayerSum(playerSum2);
       }
-      console.log(tempSum);
-      setPlayerSum(tempSum);
+
+      // console.log(tempSum);
+      // setPlayerSum(tempSum);
 
       setPlayerCards([...playerArr]);
     };
     startGame();
     console.log("Dealer: ", dealerSum);
-    console.log("Player: ", playerSum);
+    console.log("Player: ", playerSum2);
   }, []);
-  // console.log(dealerCards);
+  console.log(playerSum);
 
   const hit = () => {
     if (!canHit) {
@@ -124,13 +127,16 @@ function App() {
       hitCards.push(playerHand);
       setPlayerCards([...playerCards, ...hitCards]);
       setPlayerSum((preValue) => (preValue += getValue(playerHand)));
+      if (playerSum + getValue(playerHand) > 21) {
+        setCanHit(false);
+      }
       // playerSum += getValue(playerHand);
       // console.log(playableDeck.cards);
     }
+    // if (reduceAce(playerSum, playerAceCount) > 21) {
+    //   setCanHit(false);
+    // }
 
-    if (reduceAce(playerSum, playerAceCount) > 21) {
-      setCanHit(false);
-    }
     // console.log(playerSum);
   };
 
