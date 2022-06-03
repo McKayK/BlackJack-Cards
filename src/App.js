@@ -8,14 +8,15 @@ function App() {
   const [dealerCards, setDealerCards] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
   const [playableDeck, setPlayableDeck] = useState(new Deck());
+  const [dealerSum, setDealerSum] = useState(0);
   const [playerSum, setPlayerSum] = useState(0);
   const [canHit, setCanHit] = useState(true);
+  const [dealerAceCount, setDealerAceCount] = useState(0);
+  const [playerAceCount, setPlayerAceCount] = useState(0);
 
-  let dealerSum = 0;
   let playerSum2 = 0;
 
-  let dealerAceCount = 0;
-  let playerAceCount = 0;
+  let playerAceCount2 = 0;
 
   let hidden;
   let deck;
@@ -40,18 +41,24 @@ function App() {
 
   const checkAce = (card) => {
     // console.log("this", card);
-    if (card.suit === "A") {
+    if (card.value === "A") {
       return 1;
     }
     return 0;
   };
 
   const reduceAce = (playerSum, playerAceCount) => {
-    while (playerSum > 21 && playerAceCount > 0) {
-      setPlayerSum((preValue) => (preValue -= 10));
-      // playerSum -= 10;
-      playerAceCount -= 1;
+    let playerSum2 = playerSum;
+    console.log("first playersum2: ", playerSum2);
+    let playerAceCount2 = playerAceCount;
+    if (playerSum2 > 21 && playerAceCount2 > 0) {
+      playerSum2 -= 10;
+      playerAceCount2 -= 1;
     }
+    console.log("second playersum2: ", playerSum2);
+    setPlayerSum(playerSum2);
+    setPlayerAceCount(playerAceCount2);
+
     return playerSum;
   };
 
@@ -62,61 +69,74 @@ function App() {
   // let ready = false;
   // let tempSum = 0;
 
+  const startGame = () => {
+    hidden = playableDeck.playCard();
+    console.log("hidden value: ", hidden);
+    setDealerSum((preValue) => (preValue += getValue(hidden)));
+    setDealerAceCount((preValue) => (preValue += checkAce(hidden)));
+    console.log("dealer ace: ", dealerAceCount);
+
+    // console.log(`hidden: ${hidden.value}`, typeof hidden.value);
+    // console.log(`dealer sum: ${dealerSum}`, typeof dealerSum);
+
+    // console.log(playableDeck.playCard());
+
+    dealerArr.push(hidden);
+
+    let dealerSum2 = dealerSum;
+
+    while (dealerSum2 < 17) {
+      const temp = playableDeck.playCard();
+      dealerSum2 += getValue(temp);
+      // setDealerCards([...dealerCards, temp]);
+      dealerArr.push(temp);
+      setDealerAceCount((preValue) => (preValue += checkAce(temp)));
+      // console.log(temp);
+    }
+    setDealerSum((preValue) => (preValue += dealerSum2));
+
+    setDealerCards([...dealerArr]);
+
+    for (let i = 0; i < 2; i++) {
+      const temp = playableDeck.playCard();
+      playerAceCount2 += getValue(temp);
+      setPlayerAceCount((preValue) => (preValue += checkAce(temp)));
+
+      // console.log(temp);
+      playerArr.push(temp);
+      // setPlayerSum(playerSum + getValue(temp));
+      // playerSum2 += getValue(temp);
+      // tempSum = playerArr.reduce((acc, curr) => {
+      //   return acc + +curr.value;
+      // }, 0);
+      setPlayerSum(
+        playerArr.reduce((acc, curr) => {
+          // console.log("acc", acc, "curr", curr);
+          return (acc += getValue(curr));
+        }, 0)
+      );
+      // playerSum += getValue(temp);
+      console.log(playerSum);
+      // setPlayerSum(playerSum2);
+    }
+
+    // console.log(tempSum);
+    // setPlayerSum(tempSum);
+
+    setPlayerCards([...playerArr]);
+  };
+
   useEffect(() => {
-    const startGame = () => {
-      hidden = playableDeck.playCard();
-      dealerSum += getValue(hidden);
-      dealerAceCount += checkAce(hidden);
-
-      // console.log(`hidden: ${hidden.value}`, typeof hidden.value);
-      // console.log(`dealer sum: ${dealerSum}`, typeof dealerSum);
-
-      // console.log(playableDeck.playCard());
-
-      dealerArr.push(hidden);
-
-      while (dealerSum < 17) {
-        const temp = playableDeck.playCard();
-        // setDealerCards([...dealerCards, temp]);
-        dealerArr.push(temp);
-        dealerSum += getValue(temp);
-        dealerAceCount += checkAce(temp);
-        // console.log(temp);
-      }
-
-      setDealerCards([...dealerArr]);
-
-      for (let i = 0; i < 2; i++) {
-        const temp = playableDeck.playCard();
-
-        // console.log(temp);
-        playerArr.push(temp);
-        // setPlayerSum(playerSum + getValue(temp));
-        playerSum2 += getValue(temp);
-        // tempSum = playerArr.reduce((acc, curr) => {
-        //   return acc + +curr.value;
-        // }, 0);
-        setPlayerSum(
-          playerArr.reduce((acc, curr) => {
-            console.log("acc", acc, "curr", curr);
-            return (acc += getValue(curr));
-          }, 0)
-        );
-        // playerSum += getValue(temp);
-        console.log(playerSum);
-        playerAceCount += checkAce(temp);
-        // setPlayerSum(playerSum2);
-      }
-
-      // console.log(tempSum);
-      // setPlayerSum(tempSum);
-
-      setPlayerCards([...playerArr]);
-    };
     startGame();
-    console.log("Dealer: ", dealerSum);
-    console.log("Player: ", playerSum2);
   }, []);
+
+  console.log("player ace: ", playerAceCount);
+  console.log("Dealer: ", dealerSum);
+  console.log("Player: ", playerSum);
+
+  if (playerSum === 21) {
+    // alert("Black Jack!");
+  }
   console.log(playerSum);
 
   const hit = () => {
@@ -125,18 +145,20 @@ function App() {
     } else {
       const hitCards = [];
       const playerHand = playableDeck.playCard();
+      setPlayerAceCount((preValue) => (preValue += checkAce(playerHand)));
       hitCards.push(playerHand);
       setPlayerCards([...playerCards, ...hitCards]);
       setPlayerSum((preValue) => (preValue += getValue(playerHand)));
+
+      if (reduceAce(playerSum, playerAceCount) > 21) {
+        setCanHit(false);
+      }
       if (playerSum + getValue(playerHand) > 21) {
         setCanHit(false);
       }
       // playerSum += getValue(playerHand);
       // console.log(playableDeck.cards);
     }
-    // if (reduceAce(playerSum, playerAceCount) > 21) {
-    //   setCanHit(false);
-    // }
 
     // console.log(playerSum);
   };
